@@ -126,10 +126,16 @@ namespace Physics2D
 
 	void TestBed::onResized(sf::Event& event)
 	{
+		const auto* e = event.getIf<sf::Event::Resized>();
+		if (!e)
+			return;
+
 		Camera::Viewport viewport = m_camera.viewport();
-		viewport.set(static_cast<real>(event.size.width), static_cast<real>(event.size.height));
+		//viewport.set(static_cast<real>(event.size.width), static_cast<real>(event.size.height));
+		viewport.set(static_cast<real>(e->size.x), static_cast<real>(e->size.y));
 		m_camera.setViewport(viewport);
-		m_window->setView(sf::View(sf::FloatRect(0, 0, event.size.width, event.size.height)));
+		//m_window->setView(sf::View(sf::FloatRect(0, 0, event.size.width, event.size.height)));
+		m_window->setView(sf::View(sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(e->size.x, e->size.y))));
 	}
 
 	void TestBed::onClosed(sf::Event& event)
@@ -139,32 +145,34 @@ namespace Physics2D
 
 	void TestBed::onKeyReleased(sf::Event& event)
 	{
-		switch (event.key.code)
+		const auto* e = event.getIf<sf::Event::KeyReleased>();
+		//switch (event.key.code)
+		switch (e->code)
 		{
-		case sf::Keyboard::Space:
+		case sf::Keyboard::Key::Space:
 			{
 				m_running = !m_running;
 				break;
 			}
-		case sf::Keyboard::S:
+		case sf::Keyboard::Key::S:
 			{
 				//N means next
 				step();
 				break;
 			}
-		case sf::Keyboard::T:
+		case sf::Keyboard::Key::T:
 			{
 				//T means stepping twice
 				step();
 				step();
 				break;
 			}
-		case sf::Keyboard::R:
+		case sf::Keyboard::Key::R:
 			{
 				restart();
 				break;
 			}
-		case sf::Keyboard::M:
+		case sf::Keyboard::Key::M:
 			{
 				//print matrix
 				for(auto iter = m_system.world().bodyList().begin(); 
@@ -194,7 +202,8 @@ namespace Physics2D
 			break;
 		}
 		//combo
-		if (event.key.code == sf::Keyboard::D || event.key.code == sf::Keyboard::LControl && m_onDistanceCheck)
+		//if (event.key.code == sf::Keyboard::D || event.key.code == sf::Keyboard::LControl && m_onDistanceCheck)
+		if (e->code == sf::Keyboard::Key::D || e->code == sf::Keyboard::Key::LControl && m_onDistanceCheck)
 		{
 			m_onDistanceCheck = false;
 			m_mouseArray[0].clear();
@@ -206,17 +215,20 @@ namespace Physics2D
 
 	void TestBed::onKeyPressed(sf::Event& event)
 	{
+
 		if (m_currentFrame != nullptr)
 			m_currentFrame->onKeyPressed(event);
 
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) && sf::Keyboard::isKeyPressed(sf::Keyboard::LControl) &&
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) && sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl) &&
 			m_enableDistanceCheck)
 			m_onDistanceCheck = true;
 	}
 
 	void TestBed::onMouseReleased(sf::Event& event)
 	{
-		Vector2 pos(event.mouseButton.x, event.mouseButton.y);
+		const auto* e = event.getIf<sf::Event::MouseButtonReleased>();
+		//Vector2 pos(event.mouseButton.x, event.mouseButton.y);
+		Vector2 pos(e->position.x, e->position.y);
 		m_mousePos = m_camera.screenToWorld(pos);
 		m_screenMousePos = pos;
 
@@ -238,7 +250,10 @@ namespace Physics2D
 		if (m_currentFrame != nullptr)
 			m_currentFrame->onMouseMove(event);
 
-		Vector2 pos(event.mouseMove.x, event.mouseMove.y);
+		const auto* e = event.getIf<sf::Event::MouseMoved>();
+
+		//Vector2 pos(event.mouseMove.x, event.mouseMove.y);
+		Vector2 pos(e->position.x, e->position.y);
 		m_screenMousePos = pos;
 
 		Vector2 tf = m_camera.screenToWorld(pos) - m_mousePos;
@@ -271,17 +286,21 @@ namespace Physics2D
 
 	void TestBed::onMousePressed(sf::Event& event)
 	{
-		Vector2 pos(event.mouseButton.x, event.mouseButton.y);
+		const auto* e = event.getIf<sf::Event::MouseButtonPressed>();
+		//Vector2 pos(event.mouseButton.x, event.mouseButton.y);
+		Vector2 pos(e->position.x, e->position.y);
 		m_screenMousePos = pos;
 		m_mousePos = m_camera.screenToWorld(pos);
 
-		if (event.mouseButton.button == sf::Mouse::Right)
+		//if (event.mouseButton.button == sf::Mouse::Right)
+		if (e->button == sf::Mouse::Button::Right)
 			m_cameraViewportMovement = true;
 
 		if (m_currentFrame != nullptr)
 			m_currentFrame->onMousePress(event);
 
-		if (event.mouseButton.button == sf::Mouse::Left && m_mouseJoint != nullptr)
+		//if (event.mouseButton.button == sf::Mouse::Left && m_mouseJoint != nullptr)
+		if (e->button == sf::Mouse::Button::Left && m_mouseJoint != nullptr)
 		{
 			AABB mouseBox;
 			mouseBox.position = m_mousePos;
@@ -316,8 +335,10 @@ namespace Physics2D
 
 	void TestBed::onWheelScrolled(sf::Event& event)
 	{
+		const auto* e = event.getIf<sf::Event::MouseWheelScrolled>();
 		m_camera.setPreScreenMousePos(m_screenMousePos);
-		if (event.mouseWheelScroll.delta > 0)
+		//if (event.mouseWheelScroll.delta > 0)
+		if (e->delta > 0)
 			m_camera.setTargetMeterToPixel(m_camera.meterToPixel() + m_camera.meterToPixel() * m_zoomFactor);
 		else
 			m_camera.setTargetMeterToPixel(m_camera.meterToPixel() - m_camera.meterToPixel() * m_zoomFactor);
@@ -327,9 +348,8 @@ namespace Physics2D
 	{
 		// create the window
 		sf::ContextSettings settings;
-		settings.antialiasingLevel = 8;
-		m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode(1920, 1080), "Testbed", sf::Style::Default,
-		                                              settings);
+		settings.antiAliasingLevel = 8;
+		m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode({1920u, 1080u}), "Testbed", sf::State::Windowed, settings);
 		ImGui::SFML::Init(*m_window);
 
 		m_window->setActive(false);
@@ -340,7 +360,7 @@ namespace Physics2D
 		io.FontDefault = io.Fonts->Fonts[1];
 		ImGui::SFML::UpdateFontTexture();
 
-		if (!m_font.loadFromFile("font/MiSans-Medium.ttf"))
+		if (!m_font.openFromFile("font/MiSans-Medium.ttf"))
 		{
 			std::cout << "Cannot load font." << std::endl;
 			return;
@@ -351,56 +371,67 @@ namespace Physics2D
 		sf::Clock deltaClock;
 		while (m_window->isOpen())
 		{
-			sf::Event event{};
-			while (m_window->pollEvent(event))
+			//sf::Event event{};
+			//while (m_window->pollEvent(event))
+			while (std::optional ev = m_window->pollEvent())
 			{
-				ImGui::SFML::ProcessEvent(event);
+				//ImGui::SFML::ProcessEvent(event);
 
-				switch (event.type)
-				{
-				case sf::Event::Closed:
-					{
-						onClosed(event);
-						break;
-					}
-				case sf::Event::KeyReleased:
-					{
-						onKeyReleased(event);
-						break;
-					}
-				case sf::Event::MouseButtonPressed:
-					{
-						onMousePressed(event);
-						break;
-					}
-				case sf::Event::MouseButtonReleased:
-					{
-						onMouseReleased(event);
-						break;
-					}
-				case sf::Event::MouseMoved:
-					{
-						onMouseMoved(event);
-						break;
-					}
-				case sf::Event::MouseWheelScrolled:
-					{
-						onWheelScrolled(event);
-						break;
-					}
-				case sf::Event::Resized:
-					{
-						onResized(event);
-						break;
-					}
-				case sf::Event::KeyPressed:
-					{
-						onKeyPressed(event);
-						break;
-					}
-				default:
-					break;
-				}
+				//switch (event.type)
+				//{
+				//case sf::Event::Closed:
+				//	{
+				//		onClosed(event);
+				//		break;
+				//	}
+				//case sf::Event::KeyReleased:
+				//	{
+				//		onKeyReleased(event);
+				//		break;
+				//	}
+				//case sf::Event::MouseButtonPressed:
+				//	{
+				//		onMousePressed(event);
+				//		break;
+				//	}
+				//case sf::Event::MouseButtonReleased:
+				//	{
+				//		onMouseReleased(event);
+				//		break;
+				//	}
+				//case sf::Event::MouseMoved:
+				//	{
+				//		onMouseMoved(event);
+				//		break;
+				//	}
+				//case sf::Event::MouseWheelScrolled:
+				//	{
+				//		onWheelScrolled(event);
+				//		break;
+				//	}
+				//case sf::Event::Resized:
+				//	{
+				//		onResized(event);
+				//		break;
+				//	}
+				//case sf::Event::KeyPressed:
+				//	{
+				//		onKeyPressed(event);
+				//		break;
+				//	}
+				//default:
+				//	break;
+				//}
+
+				ImGui::SFML::ProcessEvent(*m_window, *ev);
+				if (ev->is<sf::Event::Closed>()) onClosed(*ev);
+				else if (ev->is<sf::Event::KeyReleased>()) onKeyReleased(*ev);
+				else if (ev->is<sf::Event::MouseButtonPressed>()) onMousePressed(*ev);
+				else if (ev->is<sf::Event::MouseButtonReleased>()) onMouseReleased(*ev);
+				else if (ev->is<sf::Event::MouseMoved>()) onMouseMoved(*ev);
+				else if (ev->is<sf::Event::MouseWheelScrolled>()) onWheelScrolled(*ev);
+				else if (ev->is<sf::Event::Resized>()) onResized(*ev);
+				else if (ev->is<sf::Event::KeyPressed>()) onKeyPressed(*ev);
 			}
 
 			const bool show = m_currentFrame != nullptr && m_userDrawVisible;
@@ -585,19 +616,22 @@ namespace Physics2D
 			RenderSFMLImpl::renderPoint(window, m_camera, m_mouseArray[1], RenderConstant::Green);
 			RenderSFMLImpl::renderLine(window, m_camera, m_mouseArray[0], m_mouseArray[1], RenderConstant::Green);
 			std::string str = std::format("{:.6f}", length);
-			sf::Text text;
+			sf::Text text(m_font);
 			text.setFont(m_font);
 			text.setString(str);
 			text.setCharacterSize(16);
 			text.setFillColor(RenderConstant::Green);
 			sf::FloatRect text_rect = text.getLocalBounds();
-			text.setOrigin(text_rect.left + text_rect.width / 2.0f, text_rect.top + text_rect.height / 2.0f);
+			//text.setOrigin(text_rect.left + text_rect.width / 2.0f, text_rect.top + text_rect.height / 2.0f);
+			text.setOrigin(sf::Vector2f(text_rect.position.x + text_rect.size.x / 2.0f, text_rect.position.y + text_rect.size.y / 2.0f));
 			const Vector2 t = normal.perpendicular();
-			Vector2 half(text_rect.width / 2.0f, text_rect.height / 2.0f);
+			//Vector2 half(text_rect.width / 2.0f, text_rect.height / 2.0f);
+			Vector2 half(text_rect.size.x / 2.0f, text_rect.size.y / 2.0f);
 			half *= m_camera.pixelToMeter();
 			Vector2 offset = t * half.x * 1.2f - normal * half.y * 1.5f;
 			text.setPosition(RenderSFMLImpl::toVector2f(m_camera.worldToScreen(m_mouseArray[1] + offset)));
-			text.rotate(Math::radianToDegree(-t.theta()));
+			//text.rotate(Math::radianToDegree(-t.theta()));
+			text.rotate(sf::radians(-t.theta()));
 			window.draw(text);
 		}
 	}

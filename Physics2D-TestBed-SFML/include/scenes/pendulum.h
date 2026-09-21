@@ -108,7 +108,7 @@ namespace Physics2D
 				vertex.color = sf::Color::Cyan;
 				vertices.emplace_back(vertex);
 			}
-			window.draw(&vertices[0], vertices.size(), sf::Points);
+			window.draw(&vertices[0], vertices.size(), sf::PrimitiveType::Points);
 		}
 
 		void onUnLoad() override

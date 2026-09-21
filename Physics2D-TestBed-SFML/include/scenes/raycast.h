@@ -78,7 +78,11 @@ namespace Physics2D
 
 		void onMouseMove(sf::Event& event) override
 		{
-			mousePos = m_settings.camera->screenToWorld(Vector2(event.mouseMove.x, event.mouseMove.y));
+			const auto* e = event.getIf<sf::Event::MouseMoved>();
+			if (!e)
+				return;
+			//mousePos = m_settings.camera->screenToWorld(Vector2(event.mouseMove.x, event.mouseMove.y));
+			mousePos = m_settings.camera->screenToWorld(Vector2(e->position.x, e->position.y));
 		}
 
 	private:

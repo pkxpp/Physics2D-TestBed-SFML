@@ -26,7 +26,7 @@ namespace Physics2D
 		};
 		line[0].color = color;
 		line[1].color = color;
-		window.draw(line, 2, sf::Lines);
+		window.draw(line, 2, sf::PrimitiveType::Lines);
 	}
 
 	void RenderSFMLImpl::renderPoints(sf::RenderWindow& window, Camera& camera,
@@ -42,7 +42,7 @@ namespace Physics2D
 			vertex.color = color;
 			vertices.emplace_back(vertex);
 		}
-		window.draw(&vertices[0], vertices.size(), sf::Points);
+		window.draw(&vertices[0], vertices.size(), sf::PrimitiveType::Points);
 	}
 
 
@@ -65,7 +65,7 @@ namespace Physics2D
 			vertex.color = color;
 			vertices.emplace_back(vertex);
 		}
-		window.draw(&vertices[0], vertices.size(), sf::Lines);
+		window.draw(&vertices[0], vertices.size(), sf::PrimitiveType::Lines);
 	}
 
 
@@ -176,7 +176,9 @@ namespace Physics2D
 		const Capsule* capsule = static_cast<Capsule*>(shape.shape);
 		const Vector2 screenPos = camera.worldToScreen(shape.transform.position);
 		int pointCounts = (RenderConstant::BasicCirclePointCount + camera.meterToPixel()) / 4;
-		sf::Vertex centerVertex = toVector2f(screenPos);
+		//sf::Vertex centerVertex = toVector2f(screenPos);
+		sf::Vertex centerVertex;
+		centerVertex.position = toVector2f(screenPos);
 		sf::Color fillColor(color);
 		fillColor.a = RenderConstant::FillAlpha;
 		centerVertex.color = fillColor;
@@ -214,10 +216,10 @@ namespace Physics2D
 			         Math::degreeToRadian(360));
 		}
 		vertices.emplace_back(vertices[1]);
-		window.draw(&vertices[0], vertices.size(), sf::TriangleFan);
+		window.draw(&vertices[0], vertices.size(), sf::PrimitiveType::TriangleFan);
 		for (auto& elem : vertices)
 			elem.color = color;
-		window.draw(&vertices[1], vertices.size() - 1, sf::LinesStrip);
+		window.draw(&vertices[1], vertices.size() - 1, sf::PrimitiveType::LineStrip);
 	}
 
 	void RenderSFMLImpl::renderEllipse(sf::RenderWindow& window, Camera& camera, const ShapePrimitive& shape,
@@ -230,7 +232,8 @@ namespace Physics2D
 		const Vector2 screenPos = camera.worldToScreen(shape.transform.position);
 		int pointCounts = (RenderConstant::BasicCirclePointCount + camera.meterToPixel()) / 2;
 
-		sf::Vertex centerVertex = toVector2f(screenPos);
+		sf::Vertex centerVertex /*= toVector2f(screenPos)*/;
+		centerVertex.position = toVector2f(screenPos);
 		sf::Color fillColor(color);
 		fillColor.a = RenderConstant::FillAlpha;
 		centerVertex.color = fillColor;
@@ -256,10 +259,10 @@ namespace Physics2D
 			vertices.emplace_back(vertex);
 		}
 		vertices.emplace_back(vertices[1]);
-		window.draw(&vertices[0], vertices.size(), sf::TriangleFan);
+		window.draw(&vertices[0], vertices.size(), sf::PrimitiveType::TriangleFan);
 		for (auto& elem : vertices)
 			elem.color = color;
-		window.draw(&vertices[1], vertices.size() - 1, sf::LinesStrip);
+		window.draw(&vertices[1], vertices.size() - 1, sf::PrimitiveType::LineStrip);
 	}
 
 	void RenderSFMLImpl::renderAngleLine(sf::RenderWindow& window, Camera& camera, const ShapePrimitive& shape,
@@ -495,7 +498,7 @@ namespace Physics2D
 	void RenderSFMLImpl::renderDashedLine(sf::RenderWindow& window, Camera& camera, const Vector2& p1, const Vector2& p2, 
 	                                      const sf::Color& color, const real& dashLength, const real& dashGap)
 	{
-		sf::VertexArray lines(sf::Lines);
+		sf::VertexArray lines(sf::PrimitiveType::Lines);
 
 		Vector2 direction = p2 - p1;
 		real length = direction.length();
@@ -758,13 +761,13 @@ namespace Physics2D
 	                                const sf::Font& font, const std::string& txt, const sf::Color& color,
 	                                const unsigned int& size, const Vector2& screenOffset)
 	{
-		sf::Text text;
+		sf::Text text(font);
 		text.setFont(font);
 		text.setCharacterSize(size);
 		text.setString(txt);
 		text.setFillColor(color);
 		sf::FloatRect text_rect = text.getLocalBounds();
-		text.setOrigin(text_rect.left + text_rect.width / 2.0f, text_rect.top + text_rect.height / 2.0f);
+		text.setOrigin(sf::Vector2f(text_rect.position.x + text_rect.size.x / 2.0f, text_rect.position.y + text_rect.size.y / 2.0f));
 		Vector2 offset = screenOffset;
 		if (camera.meterToPixel() > camera.defaultMeterToPixel())
 			offset /= camera.meterToPixel() / camera.defaultMeterToPixel();

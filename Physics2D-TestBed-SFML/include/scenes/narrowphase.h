@@ -60,9 +60,12 @@ namespace Physics2D
 
 		void onMousePress(sf::Event& event) override
 		{
-			if (event.mouseButton.button == sf::Mouse::Left)
+			//if (event.mouseButton.button == sf::Mouse::Button::Left)
+			const auto* e = event.getIf<sf::Event::MouseButtonPressed>();
+			if (e && e->button == sf::Mouse::Button::Left)
 			{
-				mousePos = m_settings.camera->screenToWorld(Vector2(event.mouseButton.x, event.mouseButton.y));
+				//mousePos = m_settings.camera->screenToWorld(Vector2(event.mouseButton.x, event.mouseButton.y));
+				mousePos = m_settings.camera->screenToWorld(Vector2(e->position.x, e->position.y));
 				if (shape1.contains(mousePos))
 				{
 					isPicked = true;
@@ -83,7 +86,12 @@ namespace Physics2D
 		{
 			if (!isPicked)
 				return;
-			Vector2 pos(static_cast<real>(event.mouseMove.x), static_cast<real>(event.mouseMove.y));
+			const auto* e = event.getIf<sf::Event::MouseMoved>();
+			if (!e)
+				return;
+
+			//Vector2 pos(static_cast<real>(event.mouseMove.x), static_cast<real>(event.mouseMove.y));
+			Vector2 pos(static_cast<real>(e->position.x), static_cast<real>(e->position.y));
 			currentPos = m_settings.camera->screenToWorld(pos);
 			Vector2 tf = currentPos - mousePos;
 
@@ -101,7 +109,12 @@ namespace Physics2D
 
 		void onKeyPressed(sf::Event& event) override
 		{
-			if (event.key.code == sf::Keyboard::E)
+			const auto* e = event.getIf<sf::Event::KeyPressed>();
+			if (!e)
+				return;
+
+			//if (event.key.code == sf::Keyboard::E)
+			if (e->code == sf::Keyboard::Key::E)
 			{
 				shape1.transform.rotation += Math::degreeToRadian(1.0f);
 			}

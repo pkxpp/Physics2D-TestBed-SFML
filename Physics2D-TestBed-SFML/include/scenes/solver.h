@@ -1172,9 +1172,12 @@ namespace Physics2D
 
 		void onMousePress(sf::Event& event) override
 		{
-			if (event.mouseButton.button == sf::Mouse::Left)
+			const auto* e = event.getIf<sf::Event::MouseButtonPressed>();
+			//if (event.mouseButton.button == sf::Mouse::Left)
+			if (e && e->button == sf::Mouse::Button::Left)
 			{
-				Vector2 pos(static_cast<real>(event.mouseButton.x), static_cast<real>(event.mouseButton.y));
+				//Vector2 pos(static_cast<real>(event.mouseButton.x), static_cast<real>(event.mouseButton.y));
+				Vector2 pos(static_cast<real>(e->position.x), static_cast<real>(e->position.y));
 				m_mousePos = m_settings.camera->screenToWorld(pos);
 
 				for(int i = 1; i <= 4; ++i)
@@ -1196,7 +1199,11 @@ namespace Physics2D
 		}
 		void onMouseMove(sf::Event& event) override
 		{
-			Vector2 pos(static_cast<real>(event.mouseMove.x), static_cast<real>(event.mouseMove.y));
+			const auto* e = event.getIf<sf::Event::MouseMoved>();
+			if (!e)
+				return;
+			//Vector2 pos(static_cast<real>(event.mouseMove.x), static_cast<real>(event.mouseMove.y));
+			Vector2 pos(static_cast<real>(e->position.x), static_cast<real>(e->position.y));
 			m_mousePos = m_settings.camera->screenToWorld(pos);
 			if (m_isMoving && m_currentIndex != -1)
 			{

@@ -3,8 +3,11 @@ project(Physics2D)
 set(CMAKE_CXX_STANDARD 20)
 
 # Find dependencies
+# add_subdirectory(external/imgui)
 find_package(imgui CONFIG REQUIRED)
-find_package(SFML CONFIG REQUIRED COMPONENTS graphics system window)
+set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui")
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Network)
+# add_subdirectory(external/imgui-sfml)
 find_package(ImGui-SFML CONFIG REQUIRED)
 find_package(Eigen3 CONFIG REQUIRED)
 find_package(Ceres CONFIG REQUIRED)
@@ -46,7 +49,7 @@ target_sources(Physics2D-TestBed-SFML PRIVATE
 target_link_libraries(Physics2D-TestBed-SFML PRIVATE 
     Physics2D
     imgui::imgui
-    sfml-system sfml-network sfml-graphics sfml-window
+    SFML::Graphics SFML::Window SFML::System SFML::Network
     ImGui-SFML::ImGui-SFML
     Eigen3::Eigen
     Ceres::ceres
